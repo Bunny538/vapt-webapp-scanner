@@ -24,6 +24,7 @@ A lightweight **Vulnerability Assessment and Penetration Testing (VAPT)** toolki
 | `tls` | No HTTPS, invalid/expiring cert, legacy TLS | A02, CWE-295/326 |
 | `redirect` | Open redirect | A01, CWE-601 |
 | `xss` | Reflected XSS (inert marker tag, nothing executes) | A03, CWE-79 |
+| `traversal` | Path traversal / arbitrary file read (canary files only) | A01, CWE-22 |
 | `sqli` | Error-based and boolean-based SQL injection (no data extraction) | A03, CWE-89 |
 
 **Safety by design:** GET-only injection by default (`--test-post` is opt-in), request budget (`--max-requests`), rate limiting (`--delay`), same-origin crawling, benign payloads only, no exploitation or data extraction.
@@ -43,7 +44,15 @@ python -m lab.app --port 5000
 vapt scan http://127.0.0.1:5000
 ```
 
-Open `reports/report.html` in a browser. A pre-generated example is in [`sample-report/`](sample-report/).
+Open `reports/report.html` in a browser, or use the dashboard below. A pre-generated example is in [`sample-report/`](sample-report/).
+
+### Web dashboard
+
+```bash
+vapt serve            # http://127.0.0.1:8080
+```
+
+Start scans from the browser, watch progress live, filter findings, and download HTML, Markdown, JSON or SARIF reports. The dashboard binds to loopback, rejects foreign `Host` headers and non-JSON POSTs (DNS-rebinding and cross-site protection), and enforces the same scope guard as the CLI.
 
 ### Before / after remediation
 
@@ -68,9 +77,11 @@ The lab is bound to `127.0.0.1` only.
 vapt scan <url> [--authorized] [--checks xss,sqli,...] [--max-pages 25] [--max-depth 2]
                 [--max-requests 500] [--delay 0.2] [--timeout 10] [--test-post] [--insecure]
                 [--header 'Name: value'] [--cookie 'sid=...'] [--out reports]
-                [--format json,md,html] [--fail-on {critical,high,medium,low,info,none}]
+                [--format json,md,html,sarif] [--baseline report.json] [--fail-on {critical,high,medium,low,info,none}]
 vapt list-checks
 ```
+
+`--baseline` compares against an earlier `report.json`, so `--fail-on` only gates on *new* findings. `--format sarif` writes `report.sarif` for GitHub code scanning.
 
 Exit codes: `0` clean, `1` finding at or above `--fail-on` (default `high`, useful in CI), `2` usage or scope error.
 
@@ -85,6 +96,7 @@ vapt/
   crawler.py    same-origin crawl -> pages, forms, injectable parameters
   http.py       requests wrapper: rate limit, request budget, timeouts
   checks/       one module per check, each exposes NAME + run(ctx) -> [Finding]
+  web/          Flask dashboard (`vapt serve`): JSON API + static single-page UI
   report.py     JSON / Markdown / HTML writers (HTML-escaped)
 lab/app.py      vulnerable + hardened Flask target
 tests/          pytest: lab is started in-process; asserts detections and no false positives
@@ -119,7 +131,7 @@ The workflow in `.github/workflows/ci.yml` runs the tests on Python 3.10-3.12, s
 
 - Heuristic detection: expect false positives and negatives. Always verify manually.
 - No JavaScript rendering (SPAs need a headless browser), no stored/DOM XSS, no authentication flows beyond a supplied cookie or header.
-- Ideas: SARIF output for GitHub code scanning, Playwright-based crawling, SSRF/path-traversal probes, CVSS scoring, a baseline/diff mode.
+- Ideas: Playwright-based crawling, SSRF probes, CVSS scoring.
 
 ## License
 

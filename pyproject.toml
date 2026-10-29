@@ -13,6 +13,7 @@ dependencies = ["requests>=2.31"]
 
 [project.optional-dependencies]
 lab = ["flask>=3.0"]
+web = ["flask>=3.0"]
 dev = ["flask>=3.0", "pytest>=8.0"]
 
 [project.scripts]
@@ -20,6 +21,9 @@ vapt = "vapt.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["vapt*", "lab*"]
+
+[tool.setuptools.package-data]
+"vapt.web" = ["static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

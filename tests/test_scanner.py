@@ -8,7 +8,7 @@ from vapt.scanner import ScanConfig, ScanError, ScopeError, run_scan
 from vapt.utils import is_local_host
 
 EXPECTED_VULN = {
-    "VAPT-XSS-001", "VAPT-SQLI-001", "VAPT-REDIR-001", "VAPT-CORS-REFLECT",
+    "VAPT-XSS-001", "VAPT-SQLI-001", "VAPT-TRAV-001", "VAPT-REDIR-001", "VAPT-CORS-REFLECT",
     "VAPT-HDR-CSP", "VAPT-HDR-XFO", "VAPT-HDR-XCTO",
     "VAPT-CKIE-HTTPONLY", "VAPT-CKIE-SAMESITE",
     "VAPT-DISC-SERVER", "VAPT-DISC-POWERED", "VAPT-DISC-DIRLIST", "VAPT-DISC-TRACE", "VAPT-DISC-COMMENT",
@@ -88,3 +88,22 @@ def test_cli_exit_codes(vuln_url, hardened_url, tmp_path):
     assert main(["scan", vuln_url, "--out", str(tmp_path / "b"), "--fail-on", "none"]) == 0
     assert main(["scan", hardened_url, "--out", str(tmp_path / "c")]) == 0
     assert main(["scan", "http://93.184.216.34", "--out", str(tmp_path / "d")]) == 2
+
+
+def test_sarif_output(vuln_result):
+    from vapt.report import to_sarif
+
+    doc = json.loads(to_sarif(vuln_result))
+    assert doc["version"] == "2.1.0"
+    run = doc["runs"][0]
+    assert len(run["results"]) == len(vuln_result.findings)
+    assert {r["ruleId"] for r in run["results"]} == {r["id"] for r in run["tool"]["driver"]["rules"]}
+
+
+def test_baseline_suppresses_known_findings(vuln_url, tmp_path):
+    from vapt.cli import main
+
+    assert main(["scan", vuln_url, "--out", str(tmp_path / "a"), "--fail-on", "none"]) == 0
+    base = str(tmp_path / "a" / "report.json")
+    assert main(["scan", vuln_url, "--out", str(tmp_path / "b"), "--baseline", base]) == 0
+    assert main(["scan", vuln_url, "--out", str(tmp_path / "c"), "--baseline", str(tmp_path / "missing.json")]) == 2

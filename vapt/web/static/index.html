@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>vapt scanner</title>
+<meta name="description" content="Crawl a web application and check it for common vulnerabilities, mapped to CWE and the OWASP Top 10.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230A5C73'/%3E%3Cpath d='M16 6v6M16 20v6M6 16h6M20 16h6' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='2.6' fill='%23F2A33A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<a class="skip" href="#results">Skip to results</a>
+<header class="top">
+  <a class="brand" href="/" aria-label="vapt home">
+    <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="var(--accent)"/><path d="M16 6v6M16 20v6M6 16h6M20 16h6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="16" cy="16" r="2.6" fill="#F2A33A"/></svg>
+    <span>vapt</span>
+  </a>
+  <p class="scope-note">Only scan systems you own or have written permission to test.</p>
+  <span class="ver" id="ver"></span>
+</header>
+
+<div class="layout">
+  <aside class="rail">
+    <form id="scan-form" novalidate>
+      <h1>Scan a web application</h1>
+      <p class="lede">The scanner crawls same-origin pages, then runs non-destructive checks against what it finds.</p>
+
+      <label class="field big" for="target">Target URL</label>
+      <input id="target" name="target" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="http://127.0.0.1:5000" required>
+      <p class="hint" id="target-hint">Private and loopback addresses can be scanned directly.</p>
+
+      <label class="check authz" id="authz-row" hidden>
+        <input type="checkbox" id="authorized">
+        <span>I own this target or have written permission to test it.</span>
+      </label>
+
+      <details class="opts">
+        <summary>Scan options</summary>
+        <fieldset>
+          <legend>Checks</legend>
+          <div class="chips" id="checks"></div>
+        </fieldset>
+        <div class="grid2">
+          <div><label class="field" for="max_pages">Max pages</label><input id="max_pages" type="number" min="1" max="200" value="25"></div>
+          <div><label class="field" for="max_depth">Crawl depth</label><input id="max_depth" type="number" min="0" max="6" value="2"></div>
+          <div><label class="field" for="max_requests">Request budget</label><input id="max_requests" type="number" min="10" max="5000" value="500"></div>
+          <div><label class="field" for="delay">Delay (seconds)</label><input id="delay" type="number" min="0" max="5" step="0.1" value="0"></div>
+        </div>
+        <label class="field" for="cookie">Session cookie</label>
+        <input id="cookie" type="password" autocomplete="off" placeholder="sessionid=…">
+        <label class="check"><input type="checkbox" id="test_post"><span>Also test POST forms. This can change application data.</span></label>
+        <label class="check"><input type="checkbox" id="insecure"><span>Skip TLS certificate verification</span></label>
+      </details>
+
+      <p class="form-error" id="form-error" role="alert" hidden></p>
+      <button class="go" id="go" type="submit">Start scan</button>
+    </form>
+
+    <section class="history" aria-labelledby="hist-h">
+      <h2 id="hist-h">Recent scans</h2>
+      <ul id="history"><li class="faint">Scans you run appear here until the server restarts.</li></ul>
+    </section>
+  </aside>
+
+  <main id="results" tabindex="-1" aria-live="polite">
+    <section id="view-empty" class="empty">
+      <h2>Nothing scanned yet</h2>
+      <p>Point the scanner at your own app, or try the bundled practice target. Start it with <code>python -m lab.app</code>, then scan it.</p>
+      <button class="ghost" id="use-lab" type="button">Use the practice target</button>
+      <dl class="covers" id="covers"></dl>
+    </section>
+
+    <section id="view-run" hidden>
+      <p class="run-target" id="run-target"></p>
+      <h2 id="run-title">Scanning</h2>
+      <div class="meter" aria-hidden="true"><i id="meter-bar"></i></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+
+    <section id="view-error" class="errbox" hidden>
+      <h2>The scan could not run</h2>
+      <p id="err-msg"></p>
+    </section>
+
+    <section id="view-done" hidden>
+      <div class="sum-head">
+        <div>
+          <p class="run-target" id="done-target"></p>
+          <h2 id="done-title"></h2>
+          <p class="stats" id="stats"></p>
+        </div>
+        <div class="dl" id="downloads"></div>
+      </div>
+
+      <div class="strip-wrap">
+        <div class="strip" id="strip" role="list" aria-label="Every finding, ordered by severity"></div>
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <div class="tools">
+        <label class="sr" for="q">Filter findings</label>
+        <input id="q" type="search" placeholder="Filter by title, URL, CWE or parameter">
+      </div>
+      <div id="findings"></div>
+      <p class="foot">Results are automated and heuristic. Verify each finding manually before acting on it.</p>
+    </section>
+  </main>
+</div>
+<script src="/static/app.js" defer></script>
+</body>
+</html>

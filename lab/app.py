@@ -60,6 +60,7 @@ def create_app(hardened: bool = False) -> Flask:
             '<li><a href="/search?q=hello">Search</a></li>'
             '<li><a href="/user?id=1">User profile</a></li>'
             '<li><a href="/redirect?next=/">Go</a></li>'
+            '<li><a href="/download?file=report.txt">Download</a></li>'
             f"{extra}</ul>"
             f'<form method="post" action="/login">{token}'
             '<input name="username"><input name="password" type="password"><button>Login</button></form>'
@@ -89,6 +90,22 @@ def create_app(hardened: bool = False) -> Flask:
         if not row:
             return page("<p>User not found</p>")
         return page(f"<p>Name: {html.escape(row[0])}, Email: {html.escape(row[1])}</p>")
+
+    # Simulated file store: no real filesystem access, so the lab is safe to run anywhere.
+    docs = {"report.txt": "Quarterly report (lab sample)\n"}
+    fake_fs = {"etc/passwd": "root:x:0:0:root:/root:/bin/bash\nlab:x:1000:1000::/home/lab:/bin/sh\n"}
+
+    @app.get("/download")
+    def download():
+        name = request.args.get("file", "report.txt")
+        if hardened:
+            body = docs.get(name)
+        else:
+            parts = [p for p in name.replace("\\", "/").split("/") if p not in ("", ".", "..")]
+            body = docs.get(name) or fake_fs.get("/".join(parts))
+        if body is None:
+            return Response("Not found", status=404, mimetype="text/plain")
+        return Response(body, mimetype="text/plain")
 
     @app.post("/login")
     def login():

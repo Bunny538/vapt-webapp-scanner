@@ -11,6 +11,15 @@ ORDER = ["critical", "high", "medium", "low", "info"]
 COLORS = {"critical": "#7f1d1d", "high": "#dc2626", "medium": "#ea580c", "low": "#ca8a04", "info": "#2563eb"}
 
 
+def finding_key(f) -> tuple:
+    return (f.id, f.url, f.parameter)
+
+
+def load_baseline(path: str) -> set:
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    return {(x["id"], x["url"], x.get("parameter", "")) for x in data["findings"]}
+
+
 def to_json(r: ScanResult) -> str:
     return json.dumps(r.to_dict(), indent=2)
 
@@ -90,10 +99,35 @@ def to_html(r: ScanResult) -> str:
     )
 
 
+_SARIF_LEVEL = {"critical": "error", "high": "error", "medium": "warning", "low": "note", "info": "note"}
+
+
+def to_sarif(r: ScanResult) -> str:
+    """SARIF 2.1.0, consumable by GitHub code scanning."""
+    rules, results = {}, []
+    for f in r.findings:
+        rules.setdefault(f.id, {
+            "id": f.id, "name": f.title, "shortDescription": {"text": f.title},
+            "fullDescription": {"text": f.description}, "help": {"text": f.remediation or f.description},
+            "properties": {"tags": [t for t in (f.cwe, f.owasp) if t]},
+        })
+        msg = f"{f.title}: {f.description}" + (f" (parameter: {f.parameter})" if f.parameter else "")
+        results.append({
+            "ruleId": f.id, "level": _SARIF_LEVEL[f.severity], "message": {"text": msg},
+            "locations": [{"physicalLocation": {"artifactLocation": {"uri": f.url}}}],
+        })
+    doc = {
+        "$schema": "https://json.schemastore.org/sarif-2.1.0.json", "version": "2.1.0",
+        "runs": [{"tool": {"driver": {"name": "vapt-scanner", "rules": list(rules.values())}}, "results": results}],
+    }
+    return json.dumps(doc, indent=2)
+
+
 def write_reports(r: ScanResult, out_dir: str, formats: list[str]) -> list[Path]:
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    writers = {"json": ("report.json", to_json), "md": ("report.md", to_markdown), "html": ("report.html", to_html)}
+    writers = {"json": ("report.json", to_json), "md": ("report.md", to_markdown), "html": ("report.html", to_html),
+               "sarif": ("report.sarif", to_sarif)}
     paths = []
     for fmt in formats:
         if fmt not in writers:

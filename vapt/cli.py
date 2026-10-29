@@ -7,7 +7,7 @@ import sys
 from . import __version__
 from .checks import ALL
 from .models import SEVERITY_ORDER
-from .report import ORDER, write_reports
+from .report import ORDER, finding_key, load_baseline, write_reports
 from .scanner import ScanConfig, ScanError, ScopeError, run_scan
 
 BANNER = "vapt-scanner {v} - for authorised security testing only".format(v=__version__)
@@ -17,6 +17,9 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="vapt", description=BANNER)
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("list-checks", help="show available checks")
+    w = sub.add_parser("serve", help="start the web dashboard")
+    w.add_argument("--host", default="127.0.0.1")
+    w.add_argument("--port", type=int, default=8080)
     s = sub.add_parser("scan", help="scan a web application")
     s.add_argument("target", help="base URL, e.g. http://127.0.0.1:5000")
     s.add_argument("--authorized", action="store_true",
@@ -32,7 +35,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--cookie", help="Cookie header value for authenticated scans")
     s.add_argument("--checks", help="comma-separated subset of checks")
     s.add_argument("--out", default="reports", help="report output directory")
-    s.add_argument("--format", default="json,md,html", help="comma-separated: json,md,html")
+    s.add_argument("--format", default="json,md,html", help="comma-separated: json,md,html,sarif")
+    s.add_argument("--baseline", metavar="report.json",
+                   help="previous JSON report; only findings not in it count towards --fail-on")
     s.add_argument("--fail-on", default="high", choices=[*ORDER[::-1], "none"],
                    help="exit 1 if a finding at/above this severity exists (default: high)")
     return p
@@ -43,6 +48,11 @@ def main(argv=None) -> int:
     if args.cmd == "list-checks":
         for name, mod in ALL.items():
             print(f"{name:12s} {(mod.__doc__ or '').strip().splitlines()[0]}")
+        return 0
+
+    if args.cmd == "serve":
+        from .web import serve
+        serve(args.host, args.port)
         return 0
 
     headers = {}
@@ -73,7 +83,16 @@ def main(argv=None) -> int:
         print(f"  ! check error: {e}", file=sys.stderr)
     print("\nReports: " + ", ".join(str(p) for p in paths))
 
-    if args.fail_on != "none" and result.max_severity() >= SEVERITY_ORDER[args.fail_on]:
+    gating = result.findings
+    if args.baseline:
+        try:
+            known = load_baseline(args.baseline)
+        except (OSError, ValueError, KeyError) as exc:
+            print(f"error: cannot read baseline: {exc}", file=sys.stderr)
+            return 2
+        gating = [f for f in gating if finding_key(f) not in known]
+        print(f"Baseline: {len(result.findings) - len(gating)} known, {len(gating)} new finding(s)")
+    if args.fail_on != "none" and any(SEVERITY_ORDER[f.severity] >= SEVERITY_ORDER[args.fail_on] for f in gating):
         return 1
     return 0
 

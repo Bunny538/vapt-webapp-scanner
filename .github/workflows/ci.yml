@@ -39,7 +39,7 @@ jobs:
           python -m lab.app --port 5000 &
           for i in $(seq 1 20); do curl -sf http://127.0.0.1:5000/ >/dev/null && break; sleep 0.5; done
       - name: Scan the lab
-        run: vapt scan http://127.0.0.1:5000 --out reports --fail-on none
+        run: vapt scan http://127.0.0.1:5000 --out reports --fail-on none --format json,md,html,sarif
       - uses: actions/upload-artifact@v4
         with:
           name: vapt-report
