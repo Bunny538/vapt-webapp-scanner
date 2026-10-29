@@ -20,6 +20,8 @@ def build_parser() -> argparse.ArgumentParser:
     w = sub.add_parser("serve", help="start the web dashboard")
     w.add_argument("--host", default="127.0.0.1")
     w.add_argument("--port", type=int, default=8080)
+    w.add_argument("--with-lab", action="store_true",
+                   help="also start the practice lab on 127.0.0.1:5000 (localhost only)")
     s = sub.add_parser("scan", help="scan a web application")
     s.add_argument("target", help="base URL, e.g. http://127.0.0.1:5000")
     s.add_argument("--authorized", action="store_true",
@@ -52,7 +54,7 @@ def main(argv=None) -> int:
 
     if args.cmd == "serve":
         from .web import serve
-        serve(args.host, args.port)
+        serve(args.host, args.port, args.with_lab)
         return 0
 
     headers = {}

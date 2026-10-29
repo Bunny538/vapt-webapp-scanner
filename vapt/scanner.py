@@ -61,7 +61,13 @@ def run_scan(cfg: ScanConfig, log: Callable[[str], None] = lambda m: None) -> Sc
     log(f"[*] Crawling {cfg.target}")
     pages = crawl(client, cfg.target, cfg.max_pages, cfg.max_depth)
     if not pages:
-        raise ScanError(f"Target unreachable: {client.last_error}")
+        err = client.last_error or ""
+        if "refused" in err.lower() or "10061" in err:
+            raise ScanError(
+                f"Nothing is listening at {u.netloc}. Start the target application first, then scan again. "
+                "For the practice lab, run `python -m lab.app --port 5000` in a second terminal, "
+                "or start the dashboard with `vapt serve --with-lab`.")
+        raise ScanError(f"Could not reach {cfg.target}. Check the address and port. ({err[:160]})")
     points = build_points(pages, base)
     log(f"[*] {len(pages)} page(s), {len(points)} injectable parameter(s)")
 

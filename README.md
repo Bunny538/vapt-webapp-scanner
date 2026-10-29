@@ -49,8 +49,11 @@ Open `reports/report.html` in a browser, or use the dashboard below. A pre-gener
 
 ### Web dashboard
 
+The lab is a separate app: if a scan says *Nothing is listening*, start it with `python -m lab.app --port 5000` (or use `--with-lab`).
+
 ```bash
 vapt serve            # http://127.0.0.1:8080
+vapt serve --with-lab # also starts the practice lab on http://127.0.0.1:5000 to scan
 ```
 
 Start scans from the browser, watch progress live, filter findings, and download HTML, Markdown, JSON or SARIF reports. The dashboard binds to loopback, rejects foreign `Host` headers and non-JSON POSTs (DNS-rebinding and cross-site protection), and enforces the same scope guard as the CLI.

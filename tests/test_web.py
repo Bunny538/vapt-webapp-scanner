@@ -44,3 +44,8 @@ def test_rejects_bad_requests(client):
     assert client.post("/api/scans", json={"target": "http://127.0.0.1", "checks": ["nope"]}).status_code == 400
     assert client.post("/api/scans", data="x", content_type="text/plain").status_code == 415
     assert client.get("/", headers={"Host": "evil.example"}).status_code == 403
+
+
+def test_refused_connection_gives_actionable_message(client):
+    d = _wait(client, client.post("/api/scans", json={"target": "http://127.0.0.1:1"}).get_json()["id"])
+    assert d["status"] == "error" and "Start the target application" in d["error"]

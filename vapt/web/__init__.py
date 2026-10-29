@@ -187,7 +187,19 @@ def create_web_app(allow_any_host: bool = False) -> Flask:
     return app
 
 
-def serve(host: str = "127.0.0.1", port: int = 8080) -> None:
+def _start_lab(port: int = 5000):
+    from werkzeug.serving import make_server
+
+    from lab.app import create_app
+
+    server = make_server("127.0.0.1", port, create_app(False), threaded=True)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    print(f"practice lab (intentionally vulnerable) on http://127.0.0.1:{port}  - scan this address")
+
+
+def serve(host: str = "127.0.0.1", port: int = 8080, with_lab: bool = False) -> None:
+    if with_lab:
+        _start_lab()
     app = create_web_app(allow_any_host=host not in ("127.0.0.1", "localhost", "::1"))
     print(f"vapt dashboard on http://{host}:{port}  (Ctrl+C to stop)")
     app.run(host, port, debug=False, threaded=True)
