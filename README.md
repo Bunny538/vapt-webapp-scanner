@@ -1,6 +1,6 @@
 # VAPT Web Application Scanner
 
-[![CI](https://github.com/<your-username>/vapt-webapp-scanner/actions/workflows/ci.yml/badge.svg)](https://github.com/<your-username>/vapt-webapp-scanner/actions)
+[![CI](https://github.com/Bunny538/vapt-webapp-scanner/actions/workflows/ci.yml/badge.svg)](https://github.com/Bunny538/vapt-webapp-scanner/actions)
 
 A lightweight **Vulnerability Assessment and Penetration Testing (VAPT)** toolkit for web applications:
 
@@ -32,7 +32,7 @@ A lightweight **Vulnerability Assessment and Penetration Testing (VAPT)** toolki
 ## Quick start
 
 ```bash
-git clone https://github.com/<your-username>/vapt-webapp-scanner.git
+git clone https://github.com/Bunny538/vapt-webapp-scanner.git
 cd vapt-webapp-scanner
 python -m venv .venv && source .venv/bin/activate    # Windows: .venv\Scripts\activate
 pip install -r requirements.txt && pip install -e .
@@ -121,11 +121,11 @@ Register it in `vapt/checks/__init__.py`.
 ```bash
 git init && git add . && git commit -m "Initial commit: VAPT web app scanner"
 git branch -M main
-git remote add origin https://github.com/<your-username>/vapt-webapp-scanner.git
+git remote add origin https://github.com/Bunny538/vapt-webapp-scanner.git
 git push -u origin main
 ```
 
-The workflow in `.github/workflows/ci.yml` runs the tests on Python 3.10-3.12, scans the lab, and uploads the reports as a build artifact. Replace `<your-username>` in this README (badge and clone URL).
+The workflow in `.github/workflows/ci.yml` runs the tests on Python 3.10-3.12, scans the lab, and uploads the reports as a build artifact. 
 
 ## Limitations and roadmap
 
