@@ -1,0 +1,16 @@
+# Isolated lab: the vulnerable app is reachable only on this compose network
+# and on your own loopback interface (127.0.0.1) - never on your LAN.
+services:
+  lab:
+    build: .
+    entrypoint: ["python", "-m", "lab.app", "--host", "0.0.0.0", "--port", "5000"]
+    ports:
+      - "127.0.0.1:5000:5000"
+
+  scanner:
+    build: .
+    depends_on: [lab]
+    command: ["scan", "http://lab:5000", "--out", "/reports", "--fail-on", "none"]
+    volumes:
+      - ./reports:/reports
+    user: root   # allows writing to the bind-mounted ./reports directory

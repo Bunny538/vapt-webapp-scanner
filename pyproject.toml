@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vapt-webapp-scanner"
+version = "1.0.0"
+description = "Lightweight web application vulnerability scanner with a deliberately vulnerable lab target"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["requests>=2.31"]
+
+[project.optional-dependencies]
+lab = ["flask>=3.0"]
+dev = ["flask>=3.0", "pytest>=8.0"]
+
+[project.scripts]
+vapt = "vapt.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["vapt*", "lab*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
