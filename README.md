@@ -25,6 +25,7 @@ A lightweight **Vulnerability Assessment and Penetration Testing (VAPT)** toolki
 | `redirect` | Open redirect | A01, CWE-601 |
 | `xss` | Reflected XSS (inert marker tag, nothing executes) | A03, CWE-79 |
 | `traversal` | Path traversal / arbitrary file read (canary files only) | A01, CWE-22 |
+| `authbypass` | SQL-injection login bypass (needs `--test-post`) | A03, CWE-89 |
 | `sqli` | Error-based and boolean-based SQL injection (no data extraction) | A03, CWE-89 |
 
 **Safety by design:** GET-only injection by default (`--test-post` is opt-in), request budget (`--max-requests`), rate limiting (`--delay`), same-origin crawling, benign payloads only, no exploitation or data extraction.

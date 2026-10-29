@@ -1,11 +1,11 @@
 {
   "target": "http://127.0.0.1:5077",
-  "started": "2026-10-29T06:04:29+00:00",
-  "finished": "2026-10-29T06:04:29+00:00",
-  "duration": 0.03,
-  "requests": 45,
-  "pages": 7,
-  "points": 6,
+  "started": "2026-10-29T06:25:21+00:00",
+  "finished": "2026-10-29T06:25:22+00:00",
+  "duration": 0.07,
+  "requests": 102,
+  "pages": 10,
+  "points": 13,
   "checks_run": [
     "headers",
     "cookies",
@@ -18,9 +18,22 @@
     "redirect",
     "xss",
     "sqli",
-    "traversal"
+    "traversal",
+    "authbypass"
   ],
   "findings": [
+    {
+      "id": "VAPT-AUTH-001",
+      "title": "Authentication bypass via SQL injection",
+      "severity": "high",
+      "url": "http://127.0.0.1:5077/UserLoginAction",
+      "description": "A login with an unknown user and a always-true SQL condition in the password field was accepted, so the credential check is built by string concatenation.",
+      "remediation": "Use parameterised queries, store salted password hashes, and compare hashes in code, not in the SQL statement.",
+      "evidence": "password=\"' OR '1'='1\": baseline showed a failure message, injected request did not",
+      "parameter": "password",
+      "cwe": "CWE-89",
+      "owasp": "A03:2021 Injection"
+    },
     {
       "id": "VAPT-CORS-REFLECT",
       "title": "CORS reflects arbitrary Origin with credentials",
@@ -73,6 +86,30 @@
       "id": "VAPT-SQLI-001",
       "title": "SQL injection (error-based)",
       "severity": "high",
+      "url": "http://127.0.0.1:5077/UserLoginAction",
+      "description": "A single quote in the parameter triggered a database error, indicating user input is concatenated into a SQL query.",
+      "remediation": "Use parameterised queries / prepared statements (never string concatenation), apply least-privilege database accounts, and return generic error messages.",
+      "evidence": "username='test'' -> HTTP 500: sqlite3.OperationalError",
+      "parameter": "username",
+      "cwe": "CWE-89",
+      "owasp": "A03:2021 Injection"
+    },
+    {
+      "id": "VAPT-SQLI-001",
+      "title": "SQL injection (error-based)",
+      "severity": "high",
+      "url": "http://127.0.0.1:5077/UserLoginAction",
+      "description": "A single quote in the parameter triggered a database error, indicating user input is concatenated into a SQL query.",
+      "remediation": "Use parameterised queries / prepared statements (never string concatenation), apply least-privilege database accounts, and return generic error messages.",
+      "evidence": "password='test'' -> HTTP 500: sqlite3.OperationalError",
+      "parameter": "password",
+      "cwe": "CWE-89",
+      "owasp": "A03:2021 Injection"
+    },
+    {
+      "id": "VAPT-SQLI-001",
+      "title": "SQL injection (error-based)",
+      "severity": "high",
       "url": "http://127.0.0.1:5077/user",
       "description": "A single quote in the parameter triggered a database error, indicating user input is concatenated into a SQL query.",
       "remediation": "Use parameterised queries / prepared statements (never string concatenation), apply least-privilege database accounts, and return generic error messages.",
@@ -100,7 +137,7 @@
       "url": "http://127.0.0.1:5077/search",
       "description": "User input is reflected into the HTML response without encoding, so injected markup is parsed by the browser. Attackers can run script in a victim's session.",
       "remediation": "Contextually HTML-encode all output (use the template engine's auto-escaping), validate input, and deploy a strict Content-Security-Policy.",
-      "evidence": "tml><html><head><title>VAPT Lab</title></head><body><h2>Results for \"><vx0ab72a></h2></body></html>",
+      "evidence": "tml><html><head><title>VAPT Lab</title></head><body><h2>Results for \"><vx4cd9dd></h2></body></html>",
       "parameter": "q",
       "cwe": "CWE-79",
       "owasp": "A03:2021 Injection"
@@ -140,6 +177,30 @@
       "parameter": "",
       "cwe": "CWE-209",
       "owasp": "A05:2021 Security Misconfiguration"
+    },
+    {
+      "id": "VAPT-FORM-CSRF",
+      "title": "POST form without anti-CSRF token",
+      "severity": "medium",
+      "url": "http://127.0.0.1:5077/RegisterAction",
+      "description": "A state-changing form has no visible CSRF token; a malicious site may be able to submit it on behalf of a logged-in user (verify if SameSite cookies or other defences exist).",
+      "remediation": "Add per-session CSRF tokens (or double-submit cookies) and validate them server-side.",
+      "evidence": "Fields: username, password, contact, email, address",
+      "parameter": "",
+      "cwe": "CWE-352",
+      "owasp": "A01:2021 Broken Access Control"
+    },
+    {
+      "id": "VAPT-FORM-CSRF",
+      "title": "POST form without anti-CSRF token",
+      "severity": "medium",
+      "url": "http://127.0.0.1:5077/UserLoginAction",
+      "description": "A state-changing form has no visible CSRF token; a malicious site may be able to submit it on behalf of a logged-in user (verify if SameSite cookies or other defences exist).",
+      "remediation": "Add per-session CSRF tokens (or double-submit cookies) and validate them server-side.",
+      "evidence": "Fields: username, password",
+      "parameter": "",
+      "cwe": "CWE-352",
+      "owasp": "A01:2021 Broken Access Control"
     },
     {
       "id": "VAPT-FORM-CSRF",
@@ -277,6 +338,30 @@
       "id": "VAPT-FORM-PASSWORD-HTTP",
       "title": "Password submitted over HTTP",
       "severity": "info",
+      "url": "http://127.0.0.1:5077/RegisterAction",
+      "description": "Credentials are sent unencrypted and can be sniffed on the network.",
+      "remediation": "Serve the whole site over HTTPS and redirect HTTP to HTTPS.",
+      "evidence": "",
+      "parameter": "",
+      "cwe": "CWE-319",
+      "owasp": "A02:2021 Cryptographic Failures"
+    },
+    {
+      "id": "VAPT-FORM-PASSWORD-HTTP",
+      "title": "Password submitted over HTTP",
+      "severity": "info",
+      "url": "http://127.0.0.1:5077/UserLoginAction",
+      "description": "Credentials are sent unencrypted and can be sniffed on the network.",
+      "remediation": "Serve the whole site over HTTPS and redirect HTTP to HTTPS.",
+      "evidence": "",
+      "parameter": "",
+      "cwe": "CWE-319",
+      "owasp": "A02:2021 Cryptographic Failures"
+    },
+    {
+      "id": "VAPT-FORM-PASSWORD-HTTP",
+      "title": "Password submitted over HTTP",
+      "severity": "info",
       "url": "http://127.0.0.1:5077/login",
       "description": "Credentials are sent unencrypted and can be sniffed on the network.",
       "remediation": "Serve the whole site over HTTPS and redirect HTTP to HTTPS.",
@@ -324,10 +409,10 @@
   ],
   "errors": [],
   "summary": {
-    "info": 4,
+    "info": 6,
     "low": 7,
-    "medium": 7,
-    "high": 7,
+    "medium": 9,
+    "high": 10,
     "critical": 0
   }
 }

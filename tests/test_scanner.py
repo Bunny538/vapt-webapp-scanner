@@ -107,3 +107,25 @@ def test_baseline_suppresses_known_findings(vuln_url, tmp_path):
     base = str(tmp_path / "a" / "report.json")
     assert main(["scan", vuln_url, "--out", str(tmp_path / "b"), "--baseline", base]) == 0
     assert main(["scan", vuln_url, "--out", str(tmp_path / "c"), "--baseline", str(tmp_path / "missing.json")]) == 2
+
+
+def test_login_sqli_bypass_detected_only_in_vulnerable_lab(vuln_url, hardened_url):
+    vuln = run_scan(ScanConfig(target=vuln_url, test_post=True))
+    assert "VAPT-AUTH-001" in {f.id for f in vuln.findings}
+    assert any(f.id == "VAPT-SQLI-001" and "UserLoginAction" in f.url for f in vuln.findings)
+    safe = run_scan(ScanConfig(target=hardened_url, test_post=True))
+    assert not [f for f in safe.findings if SEVERITY_ORDER[f.severity] >= SEVERITY_ORDER["medium"]]
+
+
+def test_lab_signup_and_login_flow():
+    from lab.app import create_app
+
+    for hardened, bypass_works in ((False, True), (True, False)):
+        c = create_app(hardened).test_client()
+        tok = {"csrf_token": "lab-token"}
+        r = c.post("/RegisterAction", data={**tok, "username": "kumar", "password": "kumar", "contact": "1", "email": "k@x", "address": "h"})
+        assert b"Signup process completed." in r.data
+        assert b"welcome 'kumar'" in c.post("/UserLoginAction", data={**tok, "username": "kumar", "password": "kumar"}).data
+        assert b"login failed" in c.post("/UserLoginAction", data={**tok, "username": "dave", "password": "dave"}).data
+        r = c.post("/UserLoginAction", data={**tok, "username": "alice", "password": "' or '1'='1"})
+        assert (b"welcome" in r.data) is bypass_works
