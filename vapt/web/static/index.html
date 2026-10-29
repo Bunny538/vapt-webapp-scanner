@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/app.css">
+<link rel="stylesheet" href="static/app.css">
 </head>
 <body>
 <a class="skip" href="#results">Skip to results</a>
@@ -22,6 +22,7 @@
   <span class="ver" id="ver"></span>
 </header>
 
+<p class="demo-bar" id="demo-bar" hidden>This is a read-only demo showing the results of scanning the bundled practice app. To scan your own application, run <code>vapt serve</code> locally. <a href="https://github.com/Bunny538/vapt-webapp-scanner">View the source</a></p>
 <div class="layout">
   <aside class="rail">
     <form id="scan-form" novalidate>
@@ -109,6 +110,6 @@
     </section>
   </main>
 </div>
-<script src="/static/app.js" defer></script>
+<script src="static/app.js" defer></script>
 </body>
 </html>

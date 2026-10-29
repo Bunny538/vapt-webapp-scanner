@@ -12,7 +12,7 @@
     ["Transport", "Missing HTTPS, certificate problems, legacy TLS"],
   ];
 
-  let meta = null, current = null, poll = null, filterSev = null, query = "";
+  let demo = false, meta = null, current = null, poll = null, filterSev = null, query = "";
 
   const el = (tag, props = {}, ...kids) => {
     const n = document.createElement(tag);
@@ -49,7 +49,8 @@
 
   /* ---------- setup ---------- */
   async function init() {
-    meta = await api("/api/meta");
+    try { meta = await api("/api/meta"); }
+    catch { return initDemo(); }
     $("ver").textContent = "v" + meta.version;
     $("checks").append(...meta.checks.map((c) => el("label", { title: c.description },
       el("input", { type: "checkbox", value: c.name, checked: true }), el("span", { text: c.name }))));
@@ -61,6 +62,20 @@
     await refreshHistory();
     const id = location.hash.slice(1);
     if (id) open(id);
+  }
+
+  // Static hosting (GitHub Pages) has no API: show a bundled sample result instead.
+  async function initDemo() {
+    demo = true;
+    document.body.classList.add("demo");
+    $("demo-bar").hidden = false;
+    $("ver").textContent = "demo";
+    $("covers").append(...COVERS.map(([t, d]) => el("div", {}, el("dt", { text: t }), el("dd", { text: d }))));
+    $("scan-form").addEventListener("submit", (e) => { e.preventDefault(); fail("Scanning is disabled in the demo. Run vapt serve locally."); });
+    $("q").addEventListener("input", (e) => { query = e.target.value.toLowerCase(); renderFindings(); });
+    const result = await (await fetch("demo/report.json")).json();
+    current = "demo";
+    render({ id: "demo", status: "done", target: result.target, result, checks: result.checks_run });
   }
 
   function syncScope() {
@@ -129,7 +144,8 @@
     $("done-title").textContent = n === 0 ? "No findings" : `${n} finding${n === 1 ? "" : "s"}`;
     $("stats").textContent = `${r.pages} pages crawled, ${r.points} parameters tested, ${r.requests} requests in ${r.duration} s`;
     $("downloads").replaceChildren(...[["html", "HTML"], ["md", "Markdown"], ["json", "JSON"], ["sarif", "SARIF"]]
-      .map(([f, l]) => el("a", { href: `/api/scans/${job.id}/report.${f}`, download: "", text: l })));
+      .filter(([f]) => !demo || f !== "sarif")
+      .map(([f, l]) => el("a", { href: demo ? `demo/report.${f}` : `/api/scans/${job.id}/report.${f}`, download: "", text: l })));
     window.__result = r;
     renderStrip(r);
     renderFindings();
