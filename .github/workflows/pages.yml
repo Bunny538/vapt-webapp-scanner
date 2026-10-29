@@ -28,6 +28,7 @@ jobs:
           cp vapt/web/static/index.html _site/index.html
           cp vapt/web/static/app.css vapt/web/static/app.js _site/static/
           cp sample-report/report.json sample-report/report.md sample-report/report.html _site/demo/
+          cp docs/VAPT-Scanner-Architecture-and-Workflow.pdf _site/demo/architecture.pdf
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

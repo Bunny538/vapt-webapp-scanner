@@ -1,7 +1,7 @@
 # Vulnerability Assessment Report
 
-- **Target:** http://127.0.0.1:5077
-- **Started:** 2026-10-29T06:25:21+00:00  |  **Duration:** 0.07s
+- **Target:** http://127.0.0.1:5000
+- **Started:** 2026-10-29T06:27:34+00:00  |  **Duration:** 0.07s
 - **Pages crawled:** 10  |  **Parameters tested:** 13  |  **Requests:** 102
 
 ## Summary
@@ -19,7 +19,7 @@
 ### 1. [HIGH] Authentication bypass via SQL injection
 
 - **ID:** VAPT-AUTH-001
-- **URL:** http://127.0.0.1:5077/UserLoginAction
+- **URL:** http://127.0.0.1:5000/UserLoginAction
 - **Parameter:** `password`
 - **Classification:** CWE-89 / A03:2021 Injection
 
@@ -36,7 +36,7 @@ password="' OR '1'='1": baseline showed a failure message, injected request did 
 ### 2. [HIGH] CORS reflects arbitrary Origin with credentials
 
 - **ID:** VAPT-CORS-REFLECT
-- **URL:** http://127.0.0.1:5077
+- **URL:** http://127.0.0.1:5000
 - **Classification:** CWE-942 / A05:2021 Security Misconfiguration
 
 Any website can make authenticated cross-origin requests and read the responses.
@@ -52,7 +52,7 @@ Origin: https://vapt-evil.example -> ACAO: https://vapt-evil.example, ACAC: True
 ### 3. [HIGH] Exposed backup file (backup.sql)
 
 - **ID:** VAPT-PATH-BACKUP
-- **URL:** http://127.0.0.1:5077/backup.sql
+- **URL:** http://127.0.0.1:5000/backup.sql
 - **Classification:** CWE-530 / A05:2021 Security Misconfiguration
 
 Database dumps expose all application data.
@@ -68,7 +68,7 @@ HTTP 200, 55 bytes, Content-Type: application/octet-stream
 ### 4. [HIGH] Exposed .env file
 
 - **ID:** VAPT-PATH-ENV
-- **URL:** http://127.0.0.1:5077/.env
+- **URL:** http://127.0.0.1:5000/.env
 - **Classification:** CWE-538 / A05:2021 Security Misconfiguration
 
 Environment files commonly hold database passwords and API keys.
@@ -84,7 +84,7 @@ HTTP 200, 42 bytes, Content-Type: text/plain; charset=utf-8
 ### 5. [HIGH] Exposed .git repository
 
 - **ID:** VAPT-PATH-GIT
-- **URL:** http://127.0.0.1:5077/.git/HEAD
+- **URL:** http://127.0.0.1:5000/.git/HEAD
 - **Classification:** CWE-538 / A05:2021 Security Misconfiguration
 
 Source code and history can be downloaded, often including secrets.
@@ -100,7 +100,7 @@ HTTP 200, 21 bytes, Content-Type: text/plain; charset=utf-8
 ### 6. [HIGH] SQL injection (error-based)
 
 - **ID:** VAPT-SQLI-001
-- **URL:** http://127.0.0.1:5077/UserLoginAction
+- **URL:** http://127.0.0.1:5000/UserLoginAction
 - **Parameter:** `username`
 - **Classification:** CWE-89 / A03:2021 Injection
 
@@ -117,7 +117,7 @@ username='test'' -> HTTP 500: sqlite3.OperationalError
 ### 7. [HIGH] SQL injection (error-based)
 
 - **ID:** VAPT-SQLI-001
-- **URL:** http://127.0.0.1:5077/UserLoginAction
+- **URL:** http://127.0.0.1:5000/UserLoginAction
 - **Parameter:** `password`
 - **Classification:** CWE-89 / A03:2021 Injection
 
@@ -134,7 +134,7 @@ password='test'' -> HTTP 500: sqlite3.OperationalError
 ### 8. [HIGH] SQL injection (error-based)
 
 - **ID:** VAPT-SQLI-001
-- **URL:** http://127.0.0.1:5077/user
+- **URL:** http://127.0.0.1:5000/user
 - **Parameter:** `id`
 - **Classification:** CWE-89 / A03:2021 Injection
 
@@ -151,7 +151,7 @@ id='1'' -> HTTP 500: sqlite3.OperationalError
 ### 9. [HIGH] Path traversal (arbitrary file read)
 
 - **ID:** VAPT-TRAV-001
-- **URL:** http://127.0.0.1:5077/download
+- **URL:** http://127.0.0.1:5000/download
 - **Parameter:** `file`
 - **Classification:** CWE-22 / A01:2021 Broken Access Control
 
@@ -168,7 +168,7 @@ file=../../../../../../../../etc/passwd -> HTTP 200: root:x:0:0:
 ### 10. [HIGH] Reflected cross-site scripting (XSS)
 
 - **ID:** VAPT-XSS-001
-- **URL:** http://127.0.0.1:5077/search
+- **URL:** http://127.0.0.1:5000/search
 - **Parameter:** `q`
 - **Classification:** CWE-79 / A03:2021 Injection
 
@@ -177,7 +177,7 @@ User input is reflected into the HTML response without encoding, so injected mar
 **Evidence**
 
 ```
-tml><html><head><title>VAPT Lab</title></head><body><h2>Results for "><vx4cd9dd></h2></body></html>
+tml><html><head><title>VAPT Lab</title></head><body><h2>Results for "><vxaf8d7e></h2></body></html>
 ```
 
 **Remediation:** Contextually HTML-encode all output (use the template engine's auto-escaping), validate input, and deploy a strict Content-Security-Policy.
@@ -185,7 +185,7 @@ tml><html><head><title>VAPT Lab</title></head><body><h2>Results for "><vx4cd9dd>
 ### 11. [MEDIUM] Cookie 'sessionid' missing HttpOnly
 
 - **ID:** VAPT-CKIE-HTTPONLY
-- **URL:** http://127.0.0.1:5077/
+- **URL:** http://127.0.0.1:5000/
 - **Parameter:** `sessionid`
 - **Classification:** CWE-1004 / A05:2021 Security Misconfiguration
 
@@ -202,7 +202,7 @@ sessionid=lab-session; Path=/
 ### 12. [MEDIUM] Directory listing enabled
 
 - **ID:** VAPT-DISC-DIRLIST
-- **URL:** http://127.0.0.1:5077/files/
+- **URL:** http://127.0.0.1:5000/files/
 - **Classification:** CWE-548 / A05:2021 Security Misconfiguration
 
 Visitors can browse the directory contents, exposing files not meant to be public.
@@ -212,7 +212,7 @@ Visitors can browse the directory contents, exposing files not meant to be publi
 ### 13. [MEDIUM] Stack trace / debug output exposed
 
 - **ID:** VAPT-DISC-TRACE
-- **URL:** http://127.0.0.1:5077/debug
+- **URL:** http://127.0.0.1:5000/debug
 - **Classification:** CWE-209 / A05:2021 Security Misconfiguration
 
 Verbose errors reveal file paths, frameworks and logic useful for further attacks.
@@ -228,7 +228,7 @@ Traceback (most recent call last)
 ### 14. [MEDIUM] POST form without anti-CSRF token
 
 - **ID:** VAPT-FORM-CSRF
-- **URL:** http://127.0.0.1:5077/RegisterAction
+- **URL:** http://127.0.0.1:5000/RegisterAction
 - **Classification:** CWE-352 / A01:2021 Broken Access Control
 
 A state-changing form has no visible CSRF token; a malicious site may be able to submit it on behalf of a logged-in user (verify if SameSite cookies or other defences exist).
@@ -244,7 +244,7 @@ Fields: username, password, contact, email, address
 ### 15. [MEDIUM] POST form without anti-CSRF token
 
 - **ID:** VAPT-FORM-CSRF
-- **URL:** http://127.0.0.1:5077/UserLoginAction
+- **URL:** http://127.0.0.1:5000/UserLoginAction
 - **Classification:** CWE-352 / A01:2021 Broken Access Control
 
 A state-changing form has no visible CSRF token; a malicious site may be able to submit it on behalf of a logged-in user (verify if SameSite cookies or other defences exist).
@@ -260,7 +260,7 @@ Fields: username, password
 ### 16. [MEDIUM] POST form without anti-CSRF token
 
 - **ID:** VAPT-FORM-CSRF
-- **URL:** http://127.0.0.1:5077/login
+- **URL:** http://127.0.0.1:5000/login
 - **Classification:** CWE-352 / A01:2021 Broken Access Control
 
 A state-changing form has no visible CSRF token; a malicious site may be able to submit it on behalf of a logged-in user (verify if SameSite cookies or other defences exist).
@@ -276,7 +276,7 @@ Fields: username, password
 ### 17. [MEDIUM] Missing Content-Security-Policy
 
 - **ID:** VAPT-HDR-CSP
-- **URL:** http://127.0.0.1:5077/
+- **URL:** http://127.0.0.1:5000/
 - **Classification:** CWE-693 / A05:2021 Security Misconfiguration
 
 No CSP is set, so the browser has no second line of defence against XSS and data injection.
@@ -286,7 +286,7 @@ No CSP is set, so the browser has no second line of defence against XSS and data
 ### 18. [MEDIUM] Clickjacking protection missing
 
 - **ID:** VAPT-HDR-XFO
-- **URL:** http://127.0.0.1:5077/
+- **URL:** http://127.0.0.1:5000/
 - **Classification:** CWE-1021 / A05:2021 Security Misconfiguration
 
 Neither X-Frame-Options nor CSP frame-ancestors is set; the app can be framed by any site.
@@ -296,7 +296,7 @@ Neither X-Frame-Options nor CSP frame-ancestors is set; the app can be framed by
 ### 19. [MEDIUM] Open redirect
 
 - **ID:** VAPT-REDIR-001
-- **URL:** http://127.0.0.1:5077/redirect
+- **URL:** http://127.0.0.1:5000/redirect
 - **Parameter:** `next`
 - **Classification:** CWE-601 / A01:2021 Broken Access Control
 
@@ -313,7 +313,7 @@ next=https://vapt-evil.example/ -> HTTP 302 Location: https://vapt-evil.example/
 ### 20. [LOW] Cookie 'sessionid' missing SameSite
 
 - **ID:** VAPT-CKIE-SAMESITE
-- **URL:** http://127.0.0.1:5077/
+- **URL:** http://127.0.0.1:5000/
 - **Parameter:** `sessionid`
 - **Classification:** CWE-1275 / A01:2021 Broken Access Control
 
@@ -330,7 +330,7 @@ sessionid=lab-session; Path=/
 ### 21. [LOW] Sensitive HTML comment
 
 - **ID:** VAPT-DISC-COMMENT
-- **URL:** http://127.0.0.1:5077/
+- **URL:** http://127.0.0.1:5000/
 - **Classification:** CWE-615 / A05:2021 Security Misconfiguration
 
 Developer comments mentioning credentials/TODOs are visible to all users.
@@ -346,7 +346,7 @@ TODO: remove admin password (admin/admin123) before release
 ### 22. [LOW] X-Powered-By header discloses technology
 
 - **ID:** VAPT-DISC-POWERED
-- **URL:** http://127.0.0.1:5077/
+- **URL:** http://127.0.0.1:5000/
 - **Classification:** CWE-200 / A05:2021 Security Misconfiguration
 
 The backing technology/version is advertised to every client.
@@ -362,7 +362,7 @@ X-Powered-By: PHP/5.2.4
 ### 23. [LOW] Server banner discloses version
 
 - **ID:** VAPT-DISC-SERVER
-- **URL:** http://127.0.0.1:5077/
+- **URL:** http://127.0.0.1:5000/
 - **Classification:** CWE-200 / A05:2021 Security Misconfiguration
 
 Exact software versions help attackers match known CVEs.
@@ -378,7 +378,7 @@ Server: Werkzeug/3.1.9 Python/3.14.7, Apache/2.2.8 (Ubuntu)
 ### 24. [LOW] Missing Referrer-Policy
 
 - **ID:** VAPT-HDR-REFERRER
-- **URL:** http://127.0.0.1:5077/
+- **URL:** http://127.0.0.1:5000/
 - **Classification:** CWE-200 / A05:2021 Security Misconfiguration
 
 Full URLs (possibly containing tokens or IDs) may leak to third parties via the Referer header.
@@ -388,7 +388,7 @@ Full URLs (possibly containing tokens or IDs) may leak to third parties via the 
 ### 25. [LOW] Missing X-Content-Type-Options
 
 - **ID:** VAPT-HDR-XCTO
-- **URL:** http://127.0.0.1:5077/
+- **URL:** http://127.0.0.1:5000/
 - **Classification:** CWE-693 / A05:2021 Security Misconfiguration
 
 Browsers may MIME-sniff responses and treat uploads/text as executable content.
@@ -398,7 +398,7 @@ Browsers may MIME-sniff responses and treat uploads/text as executable content.
 ### 26. [LOW] Risky HTTP methods enabled
 
 - **ID:** VAPT-METH-001
-- **URL:** http://127.0.0.1:5077
+- **URL:** http://127.0.0.1:5000
 - **Classification:** CWE-650 / A05:2021 Security Misconfiguration
 
 The server advertises DELETE, PUT, TRACE on the site root. TRACE can aid cross-site tracing; PUT/DELETE may allow unintended modification if not access-controlled.
@@ -414,7 +414,7 @@ Allow: DELETE, GET, HEAD, OPTIONS, PUT, TRACE
 ### 27. [INFO] Password submitted over HTTP
 
 - **ID:** VAPT-FORM-PASSWORD-HTTP
-- **URL:** http://127.0.0.1:5077/RegisterAction
+- **URL:** http://127.0.0.1:5000/RegisterAction
 - **Classification:** CWE-319 / A02:2021 Cryptographic Failures
 
 Credentials are sent unencrypted and can be sniffed on the network.
@@ -424,7 +424,7 @@ Credentials are sent unencrypted and can be sniffed on the network.
 ### 28. [INFO] Password submitted over HTTP
 
 - **ID:** VAPT-FORM-PASSWORD-HTTP
-- **URL:** http://127.0.0.1:5077/UserLoginAction
+- **URL:** http://127.0.0.1:5000/UserLoginAction
 - **Classification:** CWE-319 / A02:2021 Cryptographic Failures
 
 Credentials are sent unencrypted and can be sniffed on the network.
@@ -434,7 +434,7 @@ Credentials are sent unencrypted and can be sniffed on the network.
 ### 29. [INFO] Password submitted over HTTP
 
 - **ID:** VAPT-FORM-PASSWORD-HTTP
-- **URL:** http://127.0.0.1:5077/login
+- **URL:** http://127.0.0.1:5000/login
 - **Classification:** CWE-319 / A02:2021 Cryptographic Failures
 
 Credentials are sent unencrypted and can be sniffed on the network.
@@ -444,7 +444,7 @@ Credentials are sent unencrypted and can be sniffed on the network.
 ### 30. [INFO] Missing Permissions-Policy
 
 - **ID:** VAPT-HDR-PERMS
-- **URL:** http://127.0.0.1:5077/
+- **URL:** http://127.0.0.1:5000/
 - **Classification:** CWE-693 / A05:2021 Security Misconfiguration
 
 Powerful browser features (camera, geolocation, ...) are not explicitly restricted.
@@ -454,7 +454,7 @@ Powerful browser features (camera, geolocation, ...) are not explicitly restrict
 ### 31. [INFO] robots.txt lists hidden paths
 
 - **ID:** VAPT-PATH-ROBOTS
-- **URL:** http://127.0.0.1:5077/robots.txt
+- **URL:** http://127.0.0.1:5000/robots.txt
 - **Classification:** CWE-200 / A05:2021 Security Misconfiguration
 
 Disallowed paths are a roadmap of sensitive areas for an attacker; robots.txt is not access control.
@@ -470,7 +470,7 @@ Disallow: /admin, /backup.sql
 ### 32. [INFO] Site not served over HTTPS
 
 - **ID:** VAPT-TLS-NOHTTPS
-- **URL:** http://127.0.0.1:5077
+- **URL:** http://127.0.0.1:5000
 - **Classification:** CWE-319 / A02:2021 Cryptographic Failures
 
 Traffic is unencrypted and can be read or modified in transit.
